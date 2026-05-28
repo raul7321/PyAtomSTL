@@ -1,4 +1,5 @@
 from vpython import *
+from ChemFun import *
 import wx
 import re as re
 
@@ -9,19 +10,6 @@ Labels = []
 minX = minY = minZ = 0.0
 
 scene   = canvas(background = color.black,width=800,height=800)
-Radios  = {}
-Colores = {}
-
-CO = list(open('colores.rem','r'))
-for co in CO:
-    k = co.split(',')
-    c = [float(n)/255 for n in k[1].split('.')]
-    Colores[k[0]] = vec(float(c[0]),float(c[1]),float(c[2]))
-
-CO = list(open('radios.rem','r'))
-for co in CO:
-    k = co.split(',')
-    Radios[k[0]] = float(k[1])/2
 
 Vi = False
 
@@ -48,8 +36,8 @@ class Atomo():
         self.indice   = (str(ind)).zfill(3)
         self.simbolo  = sym
         self.posicion = pos
-        self.color    = Colores[sym]
-        self.radio    = Radios[sym]
+        self.color    = vec(GetColor(sym)[0]/255,GetColor(sym)[1]/255,GetColor(sym)[2]/255)
+        self.radio    = GetRadius(sym)/2
 
 Ejes = compound([cylinder(pos = vec(0,0,0),axis = vec(3,0,0), color = color.red, radius = 0.10),
         cylinder(pos = vec(0,0,0), axis = vec(0,3,0),   color = color.green,  radius = 0.10),
