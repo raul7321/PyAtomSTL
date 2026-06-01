@@ -1,7 +1,9 @@
+import pyvista as pv
 from vpython import *
 from ChemFun import *
 import wx
 import re as re
+import numpy as np
 
 app    = wx.App()
 frame  = wx.Frame(None, title='PyAtomSTL',size = (560,520))
@@ -10,6 +12,7 @@ Labels = []
 minX = minY = minZ = 0.0
 
 scene   = canvas(background = color.black,width=800,height=800)
+plotter = pv.Plotter()
 
 Vi = False
 
@@ -33,10 +36,13 @@ def LeeSTL(T):
 
 class Atomo():
     def __init__(self,ind,sym,pos):
+        (R, G, B) = GetColor(sym)
         self.indice   = (str(ind)).zfill(3)
         self.simbolo  = sym
-        self.posicion = pos
-        self.color    = vec(GetColor(sym)[0]/255,GetColor(sym)[1]/255,GetColor(sym)[2]/255)
+        self.posicion = vec(pos[0],pos[1],pos[2])
+        self.posicionVis = np.array([float(k) for k in pos])
+        self.colorVis    = (R,G,B)
+        self.color    = vec(R,G,B)/255
         self.radio    = GetRadius(sym)/2
 
 Ejes = compound([cylinder(pos = vec(0,0,0),axis = vec(3,0,0), color = color.red, radius = 0.10),
@@ -96,7 +102,7 @@ def ActualizaPAS():
             if not isinstance(n, compound):
                 n.visible = False
     Esferas = [sphere(pos = A.posicion, radius = A.radio, color = A.color) for A in Atomos]
-    Labels  = [label(pos = A.posicion, text = A.simbolo + '\n' + A.indice, box = False,opacity = 0.0, visible = M.GetValue()) for A in Atomos]
+    Labels  = [label(pos =  A.posicion, text = A.simbolo + '\n' + A.indice, box = False,opacity = 0.0, visible = M.GetValue()) for A in Atomos]
     DibujaEnlaces(0)
 
 def Repetidos():
@@ -106,13 +112,20 @@ def Repetidos():
     R.sort(reverse = True)
     return R
 
+def RenderVista():
+    global Atomos
+    E = [pv.Sphere(center = a.posicionVis, radius = a.radio) for a in Atomos]
+    Esferas = [plotter.add_mesh(e, color = a.colorVis) for e, a in zip(E, Atomos)]
+    
+    
+
 def Actualiza(SD,Dis,rad_en):
     global Labels,CM,muestra,DT,Atomos
     if muestra:
         for n in scene.objects:
             if not isinstance(n, compound):
                 n.visible = False
-    
+        
         Esferas = [sphere(pos = A.posicion, radius = A.radio, color = A.color) for A in Atomos]
         Labels  = [label(pos = A.posicion, text = A.simbolo + '\n' + A.indice, box = False,opacity = 0.0, visible = M.GetValue()) for A in Atomos]
     Z = []
@@ -139,6 +152,7 @@ def Actualiza(SD,Dis,rad_en):
         for a in Atomos:
             CM = CM + a.posicion
         CM = CM / len(Atomos)
+    RenderVista()
 
 def setorigen(x):
     global CM
@@ -169,7 +183,7 @@ def Inicia(name):
             N = int(res.group(1))
         if re.search(REG2,a):
             res = re.search(REG2,a)
-            LA.append([res.group(1),vec(float(res.group(2)),float(res.group(3)),float(res.group(4)))])
+            LA.append([res.group(1),[float(res.group(2)),float(res.group(3)),float(res.group(4))]])
     Atomos = [Atomo(i,a[0],a[1]) for i,a in enumerate(LA)]
 
     Distancias = []
@@ -637,4 +651,5 @@ K.SetCheckedItems([0])
 seccion(1)
 
 frame.Show()
+plotter.show(interactive=True)
 app.MainLoop()
