@@ -16,11 +16,11 @@ plotter = pv.Plotter()
 
 Vi = False
 
-REG1 = '^(\d+),(\d+)\s-\s(\d*\.?\d*)\s*([DT]*)$'
+REG1 = r'^(\d+),(\d+)\s-\s(\d*\.?\d*)\s*([DT]*)$'
 REG2 = r'^([a-zA-Z]+)'+3*r'\s+(\-?\d*\.?\d*e?\-?\d*)'+r'\s*$'
-REG3 = '^(\d*\.?\d*)\s*-\s*(\d*\.?\d*)\s*([DT]*)$'
+REG3 = r'^(\d*\.?\d*)\s*-\s*(\d*\.?\d*)\s*([DT]*)$'
 REG4 = r'^(\d+)\s*$'
-REG5 = r'^'+3*'(\-?\d*\.?\d*e?\-?\d*)\s+'+'([A-Z][a-z]*)'
+REG5 = r'^'+3*r'(\-?\d*\.?\d*e?\-?\d*)\s+'+'([A-Z][a-z]*)'
 REG6 = r'^(\d+)\s+(\d+)\s+(\d+)'
 
 def LeeSTL(T):
@@ -183,7 +183,7 @@ def Inicia(name):
             N = int(res.group(1))
         if re.search(REG2,a):
             res = re.search(REG2,a)
-            LA.append([res.group(1),[float(res.group(2)),float(res.group(3)),float(res.group(4))]])
+            LA.append([res.group(1),[float(res.group(i)) for i in range(2,5)]])
     Atomos = [Atomo(i,a[0],a[1]) for i,a in enumerate(LA)]
 
     Distancias = []
@@ -206,7 +206,7 @@ def IniciaMOL(name):
     for a in A:
         if re.search(REG5,a):
             res = re.search(REG5,a)
-            LA.append([res.group(4),vec(float(res.group(1)),float(res.group(2)),float(res.group(3)))])
+            LA.append([res.group(4),[float(res.group(i)) for i in range(1,4)]])
         if re.search(REG6,a) and len(LA)!= 0:
             res = re.search(REG6,a)
             e1 = str(int(res.group(1))-1)
