@@ -4,6 +4,7 @@ from ChemFun import *
 import wx
 import re as re
 import numpy as np
+import vtkmodules.vtkRenderingCore as vtk_core
 
 app    = wx.App()
 frame  = wx.Frame(None, title='PyAtomSTL',size = (560,520))
@@ -13,6 +14,8 @@ minX = minY = minZ = 0.0
 
 scene   = canvas(background = color.black,width=800,height=800)
 plotter = pv.Plotter()
+plotter.set_background('black')
+plotter.enable_lightkit()
 
 Vi = False
 
@@ -76,14 +79,13 @@ def NuevoEnlace(x):
             Ne.SetCheckedStrings([t])
             DibujaEnlaces(0)
 
-def DibujaEnlaces(x):
+def DibujaEnlaces(_):
     for n in scene.objects:
         if isinstance(n, cylinder):
             n.visible = False
     for n in [En.GetCheckedStrings(),Ne.GetCheckedStrings()]:
         for z1 in n:
             [e0,e1,r,d] = [f(x) for f,x in zip([int,int,float,str],[re.search(REG1,z1).group(h) for h in range(1,5)])]
-            r  = float(r)
             p   = (Atomos[e1].posicion-Atomos[e0].posicion)
             per = norm(vec(p.z,0,-p.x))
             if d == 'D':
@@ -94,8 +96,39 @@ def DibujaEnlaces(x):
                 cylinder(radius = r, pos = Atomos[e0].posicion - per*3*r, axis = p,color = vec(0.8,0.8,0.8))
                 cylinder(radius = r, pos = Atomos[e0].posicion, axis = p, color = vec(0.8,0.8,0.8))
             else:
-                cylinder(radius = r, pos = Atomos[e0].posicion, axis = p, color = vec(0.8,0.8,0.8))
+                cylinder(radius = r, pos = Atomos[e0].posicion, axis = p, color = vec(0.8,0.8,0.8))    
 
+def DibujaEnlacesVis(_):
+    C = []
+    for n in [En.GetCheckedStrings(),Ne.GetCheckedStrings()]:
+        for z1 in n:
+            [e0,e1,r,d] = [f(x) for f,x in zip([int,int,float,str],[re.search(REG1,z1).group(h) for h in range(1,5)])]
+            k1,k2 = Atomos[e0].posicionVis,Atomos[e1].posicionVis
+            centro = (k1 + k2) / 2.0
+            direccion = k2 - k1
+            longitud = np.linalg.norm(direccion)
+            
+            per = np.array([direccion[2],0,-direccion[0]])
+            per = per/np.linalg.norm(per)
+            if d == 'D':
+                #Doble
+                Cil = pv.Cylinder(center = centro + per*1.2*r, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+                Cil = pv.Cylinder(center = centro - per*1.2*r, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+            elif d == 'T':
+                Cil = pv.Cylinder(center = centro, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+                Cil = pv.Cylinder(center = centro + per*3.0*r, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+                Cil = pv.Cylinder(center = centro - per*3.0*r, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+            else:
+                Cil = pv.Cylinder(center = centro, direction = direccion, height = longitud, radius = r)
+                C.append(Cil.extract_surface(algorithm='dataset_surface'))
+
+    Cilindros = [plotter.add_mesh(c, color='white') for c in C]
+    
 def ActualizaPAS():
     global Atomos
     for n in scene.objects:
@@ -114,11 +147,49 @@ def Repetidos():
 
 def RenderVista():
     global Atomos
-    E = [pv.Sphere(center = a.posicionVis, radius = a.radio) for a in Atomos]
-    Esferas = [plotter.add_mesh(e, color = a.colorVis) for e, a in zip(E, Atomos)]
-    
-    
+    fs = 20; fi = 15
+    plotter.clear()
+    plotter.enable_lightkit()
+    E = [pv.Sphere(center = a.posicionVis, radius = a.radio, theta_resolution=60, phi_resolution=60) for a in Atomos]
+    Esferas = [plotter.add_mesh(
+        e,
+        color = a.colorVis,
+        smooth_shading = True,
+        ambient =        0.2,
+        specular =       0.5,
+        specular_power = 128.0,
+        diffuse = 0.8
+        ) for e, a in zip(E, Atomos)]
 
+    for a in Atomos:
+
+        pos_simbolo = a.posicionVis + np.array([a.radio * 1.2, a.radio * 1.2, 0])
+        pos_indice  = a.posicionVis + np.array([a.radio * 1.2, -a.radio * 1.2, 0])
+        
+        sim_texto = vtk_core.vtkBillboardTextActor3D()
+        sim_texto.SetInput(a.simbolo)
+        sim_texto.SetPosition(pos_simbolo)
+        
+        texto = vtk_core.vtkBillboardTextActor3D()
+        texto.SetInput(str(a.indice))  
+        texto.SetPosition(pos_indice)
+        
+        p_sim = sim_texto.GetTextProperty()
+        p_sim.SetFontSize(fs)      
+        p_sim.SetColor(1.0, 1.0, 1.0) 
+        p_sim.SetJustificationToCentered()  
+        p_sim.BoldOn()
+        p_sim.ShadowOn()
+        
+        p_idx = texto.GetTextProperty()
+        p_idx.SetFontSize(fi)      
+        p_idx.SetColor(1.0, 1.0, 1.0) 
+        p_idx.SetJustificationToCentered()  
+
+        plotter.add_actor(sim_texto, name=f'label_sim_{a.simbolo}_{a.indice}')
+        plotter.add_actor(texto, name=f'label_idx_{a.indice}')
+    DibujaEnlacesVis(0)
+        
 def Actualiza(SD,Dis,rad_en):
     global Labels,CM,muestra,DT,Atomos
     if muestra:
@@ -152,7 +223,8 @@ def Actualiza(SD,Dis,rad_en):
         for a in Atomos:
             CM = CM + a.posicion
         CM = CM / len(Atomos)
-    RenderVista()
+        RenderVista()
+    
 
 def setorigen(x):
     global CM
