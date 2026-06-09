@@ -7,7 +7,7 @@ import numpy as np
 import vtkmodules.vtkRenderingCore as vtk_core
 
 app    = wx.App()
-frame  = wx.Frame(None, title='PyAtomSTL',size = (560,520))
+frame  = wx.Frame(None, title = 'PyAtomSTL',size = (560,520))
 panel  = wx.Panel(frame)
 Labels = []
 minX = minY = minZ = 0.0
@@ -48,19 +48,12 @@ class Atomo():
         self.color    = vec(R,G,B)/255
         self.radio    = GetRadius(sym)/2
 
-Ejes = compound([cylinder(pos = vec(0,0,0),axis = vec(3,0,0), color = color.red, radius = 0.10),
-        cylinder(pos = vec(0,0,0), axis = vec(0,3,0),   color = color.green,  radius = 0.10),
-        cylinder(pos = vec(0,0,0), axis = vec(0,0,3),   color = vec(0.2,1,1), radius = 0.10),
-        cone(pos = vec(3,0,0),     axis = vec(0.8,0,0), color = color.red,    radius = 0.2),
-        cone(pos = vec(0,3,0),     axis = vec(0,0.8,0), color = color.green,  radius = 0.2),
-        cone(pos = vec(0,0,3),     axis = vec(0,0,0.8), color = vec(0.2,1,1), radius = 0.2)])
-
-def Borrar(x):
+def Borrar(_):
     Ne.Clear()
     DibujaEnlaces(0)
 
 def vista(x):
-    scene.fov = radians(60) if Vista.Value else radians(3)
+    plotter.camera.disable_parallel_projection() if Vista.Value else plotter.camera.enable_parallel_projection()
     
 def NuevoEnlace(x):
     if T1.Value!=T2.Value and str(T1.Value).isdigit() and str(T2.Value).isdigit():
@@ -160,9 +153,8 @@ def RenderVista():
         specular_power = 128.0,
         diffuse = 0.8
         ) for e, a in zip(E, Atomos)]
-
+    
     for a in Atomos:
-
         pos_simbolo = a.posicionVis + np.array([a.radio * 1.2, a.radio * 1.2, 0])
         pos_indice  = a.posicionVis + np.array([a.radio * 1.2, -a.radio * 1.2, 0])
         
@@ -186,8 +178,8 @@ def RenderVista():
         p_idx.SetColor(1.0, 1.0, 1.0) 
         p_idx.SetJustificationToCentered()  
 
-        plotter.add_actor(sim_texto, name=f'label_sim_{a.simbolo}_{a.indice}')
-        plotter.add_actor(texto, name=f'label_idx_{a.indice}')
+        plotter.add_actor(sim_texto, name = f'S_{a.simbolo}_{a.indice}')
+        plotter.add_actor(texto, name = f'I_{a.indice}')
     DibujaEnlacesVis(0)
         
 def Actualiza(SD,Dis,rad_en):
@@ -198,7 +190,7 @@ def Actualiza(SD,Dis,rad_en):
                 n.visible = False
         
         Esferas = [sphere(pos = A.posicion, radius = A.radio, color = A.color) for A in Atomos]
-        Labels  = [label(pos = A.posicion, text = A.simbolo + '\n' + A.indice, box = False,opacity = 0.0, visible = M.GetValue()) for A in Atomos]
+        Labels  = [label(pos = A.posicion, text = A.simbolo + '\n' + A.indice, box = False,opacity = 0.0, visible = M1.GetValue()) for A in Atomos]
     Z = []
     for sd,r,D in zip(SD,rad_en,Dis):
         Enlaces = []
@@ -226,24 +218,28 @@ def Actualiza(SD,Dis,rad_en):
         RenderVista()
     
 
-def setorigen(x):
+def setorigen(_):
     global CM
     scene.center = vec(0,0,0) if R1.GetValue() else CM
+    plotter.camera.focal_point = [0.0, 0.0, 0.0] if R1.GetValue() else [CM.x,CM.y,CM.z]
+    plotter.render()
     
-def seccion(x):
+def seccion(_):
     Z = K.GetCheckedStrings()
     K0 = [re.search(REG3,k).group(3) for k in Z]
     K1 = [float(re.search(REG3,k).group(1)) for k in Z]
     K2 = [float(re.search(REG3,k).group(2)) for k in Z]
     Actualiza(K0,K1,K2)
     
-def act_etiquetas(x):
-    global Labels
-    for L in Labels:
-        L.visible = M.GetValue()
+def act_etiquetas(_):
+    Ms,Mi = M1.GetValue(),M2.GetValue()
+    for n in list(plotter.actors.keys()):
+        if n.startswith('S_'): plotter.actors[n].visibility = Ms
+        if n.startswith('I_'): plotter.actors[n].visibility = Mi
+    plotter.render()  
 
-def act_ejes(x):
-    Ejes.visible = Ej.GetValue()
+def act_ejes(_):
+    plotter.add_axes() if Ej.GetValue() else plotter.hide_axes()
 
 def Inicia(name):
     global DisStr,Atomos,muestra
@@ -375,21 +371,20 @@ def STL(nam):
             Graba(cilindro(x1,y1,z1,x2,y2,z2,r,d))
     salida.write('endsolid R_Espejel\n')
     salida.close()
-    #print(minX,minY,minZ)
 
-def CRadio(x):
+def CRadio(_):
     k = At.GetString(At.GetSelection())
     k = k.split(' - ')
     Ar.Value = k[1]
 
-def CRadioE(x):
+def CRadioE(_):
     B_id = x.GetEventObject().GetName()
     k    = DicFun1[B_id].GetString(DicFun1[B_id].GetSelection()).replace(' D','')
     k    = k.replace(' T','')
     k    = k.split(' - ')
     DicTxt1[B_id].Value = k[1]
 
-def ActTodosEn(dummy):
+def ActTodosEn(_):
     re = RE.Value.strip()
     
     seK = K.GetCheckedItems()
@@ -409,7 +404,7 @@ def ActTodosEn(dummy):
     
     DibujaEnlaces(0)
 
-def CambiarRadio(x):
+def CambiarRadio(_):
     try:
         k = At.GetString(At.GetSelection())
         k = k.split(' - ')
@@ -422,7 +417,7 @@ def CambiarRadio(x):
         dlg.ShowModal()
         dlg.Destroy()
 
-def CambiarRadioE(x):
+def CambiarRadioE(_):
     try:
         B_id = x.GetEventObject().GetName()
         h = DicFun1[B_id].GetString(DicFun1[B_id].GetSelection())
@@ -436,7 +431,7 @@ def CambiarRadioE(x):
         dlg.ShowModal()
         dlg.Destroy()
 
-def DSE(x):
+def DSE(_):
     try:
         B_id = x.GetEventObject().GetName()
         k = DicFun1[B_id].GetString(DicFun1[B_id].GetSelection())
@@ -453,7 +448,7 @@ def DSE(x):
         dlg.ShowModal()
         dlg.Destroy()
 
-def STLG(event):
+def STLG(_):
     global ruta
     nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+',ruta).group(3)
     fileDialog = wx.FileDialog(panel,"Exportar archivo STL", wildcard="Archivo STL (*.stl)|*.stl",
@@ -463,7 +458,7 @@ def STLG(event):
     ruta = fileDialog.GetPath()
     STL(ruta)
 
-def XYZR(event):
+def XYZR(_):
     global DisStr,ruta
     fileDialog = wx.FileDialog(panel,"Leer archivo XYZ", wildcard="Archivo XYZ (*.xyz)|*.xyz",
                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -479,7 +474,7 @@ def XYZR(event):
     ListaRadios()
     seccion(1)
     
-def MOLR(event):
+def MOLR(_):
     global DisStr,ruta
     fileDialog = wx.FileDialog(panel,"Leer archivo MOL", wildcard="Archivo MOL (*.mol)|*.mol",
                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -502,12 +497,12 @@ def ListaRadios():
             At.Append(a.simbolo+' - '+str(a.radio))
             AtS.append(a.simbolo)
 
-def Originales(x):
-    for a in Atomos: a.radio = Radios[a.simbolo]
+def Originales(_):
+    for a in Atomos: a.radio = GetRadius(a.simbolo)/2.0
     ListaRadios()
     seccion(0)
 
-def LeerPAS(x):
+def LeerPAS(_):
     global ruta,muestra,Atomos
     fileDialog = wx.FileDialog(panel,"Leer archivo PAS", wildcard='Archivo PAS (*.pas)|*.pas',
                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -544,7 +539,7 @@ def LeerPAS(x):
     ActualizaPAS()
     K.Enabled = True
 
-def SalvarPAS(x):
+def SalvarPAS(_):
     global ruta
     nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+',ruta).group(3)
     fileDialog = wx.FileDialog(panel,"Salvar archivo PAS", wildcard="Archivo PAS (*.pas)|*.pas",
@@ -575,7 +570,7 @@ def SalvarPAS(x):
     salva.write('@8,'+str(Ne.GetCheckedItems()).replace(',','')+'\n')
     salva.close()
 
-def SelTodos(x):
+def SelTodos(_):
     B_id = x.GetEventObject().GetName()
     DicFun1[B_id].SetCheckedItems(range(len(DicFun1[B_id].GetItems())) if DicTxt[B_id].GetValue() else [])
     if B_id == 'CR1':
@@ -583,7 +578,7 @@ def SelTodos(x):
     else:
         DibujaEnlaces(0)
 
-def SPNG(x):
+def SPNG(_):
     global ruta
     nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+',ruta).group(3)
     scene.capture(nam)
@@ -591,15 +586,20 @@ def SPNG(x):
 ruta = r'\CuCl.xyz'
 Inicia('CuCl.xyz')
 
+plotter.add_axes()
+
 y1 = 5; y2 = 20; y3 = 20
 
 Vista = wx.CheckBox(panel,pos=(5,15+y1),label = 'Perspectiva')
 Vista.Bind(wx.EVT_CHECKBOX,vista)
 Vista.SetValue(True)
 
-M = wx.CheckBox(panel,pos=(320,15+y1),label = 'Etiquetas')
-M.Bind(wx.EVT_CHECKBOX,act_etiquetas)
-M.SetValue(True)
+M1 = wx.CheckBox(panel,pos=(320,5+y1),label = 'Símbolo')
+M1.Bind(wx.EVT_CHECKBOX,act_etiquetas)
+M1.SetValue(True)
+M2 = wx.CheckBox(panel,pos=(320,25+y1),label = 'Indices')
+M2.Bind(wx.EVT_CHECKBOX,act_etiquetas)
+M2.SetValue(True)
 
 Ej = wx.CheckBox(panel,pos=(410,15+y1),label = 'Ejes')
 Ej.Bind(wx.EVT_CHECKBOX,act_ejes)
@@ -610,7 +610,7 @@ R1 = wx.RadioButton(panel,pos = (100,15+y1),label = '<0,0,0>')
 R2 = wx.RadioButton(panel,pos = (180,15+y1),label = 'Centro Geom')
 R1.Bind(wx.EVT_RADIOBUTTON,setorigen)
 R2.Bind(wx.EVT_RADIOBUTTON,setorigen)
-R1.SetValue(True)
+R2.SetValue(True)
 
 St1 = wx.CheckBox(panel,pos=(5,70+y1),   label = '', name = 'CR1')
 St2 = wx.CheckBox(panel,pos=(150,70+y1), label = '', name = 'CR2')
