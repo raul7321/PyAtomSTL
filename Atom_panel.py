@@ -113,6 +113,10 @@ class PyAtomSTLFrame(wx.Frame):
         self.boton4.Bind(wx.EVT_BUTTON, self.main.ActTodosEn)
         self.boton4.SetToolTip('Cambia el radio de todos los enlaces')
 
+        self.boton5 = wx.Button(self.panel, label='Visualizar\n3D Rojo/Cyan', pos=(310, 385 + y3), size=(100, 35))
+        self.boton5.Bind(wx.EVT_BUTTON, self.main.Anaglyph)
+        self.boton5.SetToolTip('Cambia la visualización a anaglifo rojo/cyan')
+
         self.boton6 = wx.Button(self.panel, label='Radios\noriginales', pos=(135, 325+y3), size=(100, 35))
         self.boton6.Bind(wx.EVT_BUTTON, self.main.Originales)
 

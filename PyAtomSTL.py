@@ -18,6 +18,7 @@ REG2 = r'^([a-zA-Z]+)'+3*r'\s+(\-?\d*\.?\d*e?\-?\d*)'+r'\s*$'
 REG3 = r'^(\d*\.?\d*)\s*-\s*(\d*\.?\d*)\s*([DT]*)$'
 REG5 = r'^'+3*r'(\-?\d*\.?\d*e?\-?\d*)\s+'+'([A-Z][a-z]*)'
 REG6 = r'^(\d+)\s+(\d+)\s+(\d+)'
+rgb = (1.0, 1.0, 1.0)
 
 class Atomo():
     def __init__(self, ind, sym, pos):
@@ -536,6 +537,7 @@ def SelTodos(event):
         DibujaEnlaces(None)
 
 def Fondo(event):
+    global rgb
     data = wx.ColourData()
     data.SetChooseFull(True)      
     data.SetColour(wx.Colour(0, 0, 0)) 
@@ -545,6 +547,20 @@ def Fondo(event):
         rgb = (color.Red()/255.0, color.Green()/255.0, color.Blue()/255.0)
         dialog.Destroy()
         plotter.set_background(rgb)
+        plotter.render()
+
+def Anaglyph(event):
+    global rgb
+    if plotter.render_window.GetStereoRender():
+        plotter.set_background(rgb)
+        plotter.disable_stereo_render()
+        plotter.render()
+        ui.boton5.SetLabel('Visualizar\n3D Rojo/Cyan')
+    else:
+        ui.boton5.SetLabel('Visualización\nnormal')
+        rgb = plotter.renderer.background_color
+        plotter.set_background((1.0, 1.0, 1.0))
+        plotter.enable_stereo_render()
         plotter.render()
 
 def SPNG(event):
