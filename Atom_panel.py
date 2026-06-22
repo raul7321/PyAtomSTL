@@ -102,6 +102,10 @@ class PyAtomSTLFrame(wx.Frame):
         self.boton2.Bind(wx.EVT_BUTTON, self.main.CambiarRadio)
         self.boton2.SetToolTip('Cambia el radio de todos los átomos del elemento seleccionado')
 
+        self.boton3 = wx.Button(self.panel, label='Cambiar color\ndel fondo', pos=(310, 345+y3), size=(100, 35))
+        self.boton3.Bind(wx.EVT_BUTTON, self.main.Fondo)
+        self.boton3.SetToolTip('Permite seleccionar el color del fondo')
+
         self.RE = wx.TextCtrl(self.panel, pos=(265, 290+y3), size=(40, 20), value='0.10', style=wx.TE_PROCESS_ENTER)
         self.RE.Bind(wx.EVT_TEXT_ENTER, self.main.ActTodosEn)
 

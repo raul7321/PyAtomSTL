@@ -5,9 +5,10 @@ import re as re
 import numpy as np
 import vtkmodules.vtkRenderingCore as vtk_core
 import sys
+import os
 from Atom_panel import PyAtomSTLFrame
 
-plotter = pv.Plotter()
+plotter = pv.Plotter(title = 'PyAtomSTL')
 plotter.set_background('black')
 plotter.enable_lightkit()
 plotter.add_axes()
@@ -51,9 +52,8 @@ def NuevoEnlace(event):
             DibujaEnlaces(None)
 
 def DibujaEnlaces(event):
-    for actor_name in list(plotter.actors.keys()):
-        if actor_name.startswith('cil_'):
-            plotter.remove_actor(actor_name)
+    if 'enlaces_moleculares' in list(plotter.actors.keys()):
+        plotter.remove_actor('enlaces_moleculares',render = False)
     C = []
     for n in [ui.En.GetCheckedStrings(), ui.Ne.GetCheckedStrings()]:
         for z1 in n:
@@ -85,10 +85,9 @@ def DibujaEnlaces(event):
     C = pv.MultiBlock(C)
 
     plotter.add_mesh(
-        C, color='white',
+        C, render = False,color='white',
         smooth_shading=True,
-        name='enlaces_moleculares',
-        render=False
+        name='enlaces_moleculares'
     )
     
 def ActualizaPAS():
@@ -122,6 +121,7 @@ def RenderVista():
 
     plotter.add_mesh(
         glifos_atomos,
+        render = False,
         scalars = 'colores',  
         rgb = True,                  
         smooth_shading = True,       
@@ -154,8 +154,8 @@ def RenderVista():
         p_idx.SetColor(1.0, 1.0, 1.0) 
         p_idx.SetJustificationToCentered()  
 
-        plotter.add_actor(sim_texto, name = f'S_{a.indice}_{a.simbolo}')
-        plotter.add_actor(texto, name = f'I_{a.indice}_{a.simbolo}')
+        plotter.add_actor(sim_texto, name = f'S_{a.indice}_{a.simbolo}',render = False)
+        plotter.add_actor(texto, name = f'I_{a.indice}_{a.simbolo}',render = False)
 
 def RenuevaAtomos():
     global Atomos, esfera, puntos
@@ -166,6 +166,7 @@ def RenuevaAtomos():
 
     plotter.add_mesh(
         glifos_atomos,
+        render = False,
         scalars='colores',
         rgb=True,
         smooth_shading=True,
@@ -237,6 +238,7 @@ def act_ejes(event):
 
 def Inicia(name):
     global DisStr, Atomos, muestra
+    plotter.render_window.SetWindowName(f'PyAtomSTL - {name}')
     muestra = 0; LA = []
     for a in [a.strip() for a in list(open(name, 'r'))]:
         if re.search(REG2, a):
@@ -256,8 +258,10 @@ def Inicia(name):
     Distancias.sort()
     DisStr = [str(t) + ' - 0.10' for t in Distancias]
 
+
 def IniciaMOL(name):
     global DisStr, Atomos, muestra
+    plotter.render_window.SetWindowName(f'PyAtomSTL - {name}')
     muestra = 0; LA = []; Emol = []
     A = [a.strip() for a in list(open(name, 'r'))]
     for a in A:
@@ -302,8 +306,24 @@ def Depura():
         if i not in Repetidos: ui.K.Append(k)
     muestra = 1
 
+
 def STL(nam):
-    print("Exportando STL...")
+
+    malla_atomos = plotter.actors['atomos'].mapper.dataset
+    malla_enlaces = plotter.actors['enlaces_moleculares'].mapper.dataset.combine()
+
+    if malla_atomos and malla_enlaces:
+        malla_final = malla_atomos.merge(malla_enlaces).extract_surface(algorithm='dataset_surface')
+    else:
+        dlg = wx.MessageDialog(ui.panel, 'No es posible exportar', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+        return
+    malla_final.save(nam)
+
+    dlg = wx.MessageDialog(ui.panel, f'Archivo {nam} listo!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
 
 def CRadio(event):
     k = ui.At.GetString(ui.At.GetSelection())
@@ -345,7 +365,6 @@ def CambiarRadio(event):
         for a in Atomos:
             if a.simbolo == k[0]: a.radio = float(ui.Ar.Value)
         RenuevaAtomos()
-        #seccion(None)
     except:
         dlg = wx.MessageDialog(ui.panel, 'Debes resaltar una entrada de la lista\ny dar un radio válido', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
@@ -390,7 +409,8 @@ def DSE(event):
 
 def STLG(event):
     global ruta
-    nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
+    nam = os.path.splitext(os.path.basename(ruta))[0]
     fileDialog = wx.FileDialog(ui.panel, "Exportar archivo STL", wildcard="Archivo STL (*.stl)|*.stl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
     fileDialog.SetFilename(nam)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
@@ -401,7 +421,7 @@ def XYZR(event):
     global DisStr, ruta
     fileDialog = wx.FileDialog(ui.panel, "Leer archivo XYZ", wildcard="Archivo XYZ (*.xyz)|*.xyz", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ui.RE.value = '0.10'
+    ui.RE.Value = '0.10'
     ruta = fileDialog.GetPath()
     Inicia(ruta)
     ui.K.SetItems(DisStr)
@@ -416,7 +436,7 @@ def MOLR(event):
     global DisStr, ruta
     fileDialog = wx.FileDialog(ui.panel, "Leer archivo MOL", wildcard="Archivo MOL (*.mol)|*.mol", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ui.RE.value = '0.10'
+    ui.RE.Value = '0.10'
     ruta = fileDialog.GetPath()
     Emol = IniciaMOL(ruta)
     ui.K.SetItems(DisStr)
@@ -477,14 +497,16 @@ def LeerPAS(event):
 
 def SalvarPAS(event):
     global ruta
-    nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
+    nam = os.path.splitext(os.path.basename(ruta))[0]
     fileDialog = wx.FileDialog(ui.panel, "Salvar archivo PAS", wildcard="Archivo PAS (*.pas)|*.pas", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
     fileDialog.SetFilename(nam)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
     ruta = fileDialog.GetPath()
     salva = open(ruta, 'w')
     for a in Atomos:
-        salva.write('@1,' + a.indice + ',' + a.simbolo + ',' + str(a.posicionVis) + '\n')
+        pos_str = f"<{a.posicionVis[0]},{a.posicionVis[1]},{a.posicionVis[2]}>"
+        salva.write('@1,' + a.indice + ',' + a.simbolo + ',' + pos_str + '\n')
     for a in ui.At.GetItems():
         k = a.split(' - '); salva.write('@2,' + k[0] + ',' + k[1].strip() + '\n')
     for a in ui.K.GetItems():
@@ -513,8 +535,27 @@ def SelTodos(event):
     else:
         DibujaEnlaces(None)
 
+def Fondo(event):
+    data = wx.ColourData()
+    data.SetChooseFull(True)      
+    data.SetColour(wx.Colour(0, 0, 0)) 
+    dialog = wx.ColourDialog(ui.panel, data)
+    if dialog.ShowModal() == wx.ID_OK:
+        color = dialog.GetColourData().GetColour()
+        rgb = (color.Red()/255.0, color.Green()/255.0, color.Blue()/255.0)
+        dialog.Destroy()
+        plotter.set_background(rgb)
+        plotter.render()
+
 def SPNG(event):
-    print('Capturando Imagen...')
+    global ruta
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
+    nam = os.path.splitext(os.path.basename(ruta))[0]
+    fileDialog = wx.FileDialog(ui.panel, "Salvar archivo png", wildcard="Archivo png (*.png)|*.png", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    fileDialog.SetFilename(nam)
+    if fileDialog.ShowModal() == wx.ID_CANCEL: return
+    ruta = fileDialog.GetPath()
+    plotter.screenshot(ruta)
 
 app = wx.App()
 
