@@ -32,10 +32,10 @@ DC = {'H' : (255, 255, 255), 'He': (217, 255, 255), 'Li': (204, 128, 255), 'Be':
       'Md': (179,  13, 166), 'No': (189,  13, 135), 'Lr': (199,   0, 102), 'Rf': (204,   0,  89), 'Db': (209,   0,  79),
       'Sg': (217,   0,  69), 'Bh': (224,   0,  56), 'Hs': (230,   0,  46), 'Mt': (235,   0,  38)}
 
-def GetRadius(elemento):
-    if elemento in DR: return DR[elemento]
+def GetRadius(element):
+    if element in DR: return DR[element]
     return 1.0
 
-def GetColor(elemento):
-    if elemento in DC: return DC[elemento]
+def GetColor(element):
+    if element in DC: return DC[element]
     return (128, 128, 128)

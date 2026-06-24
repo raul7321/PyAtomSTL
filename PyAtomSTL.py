@@ -30,7 +30,7 @@ class Atomo():
 
 def Borrar(event):
     ui.Ne.Clear()
-    DibujaEnlaces(None)
+    DrawBonds(None)
 
 def vista(event):
     plotter.camera.disable_parallel_projection() if ui.Vista.Value else plotter.camera.enable_parallel_projection()
@@ -43,16 +43,16 @@ def NuevoEnlace(event):
         k1 = [set((h.split(' - ')[0]).split(',')) for h in ui.En.GetStrings()]
         k2 = [set((h.split(' - ')[0]).split(',')) for h in ui.Ne.GetStrings()]
         if (t1 in k1) or (t1 in k2):
-            dlg = wx.MessageDialog(ui.panel, 'Ese enlace ya está en el sistema.', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(ui.panel, 'That bound is already in the system.', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
         else:
             t = t + ' - 0.10'
             ui.Ne.Append(t)
             ui.Ne.SetCheckedStrings([t])
-            DibujaEnlaces(None)
+            DrawBonds(None)
 
-def DibujaEnlaces(event):
+def DrawBonds(event):
     if 'enlaces_moleculares' in list(plotter.actors.keys()):
         plotter.remove_actor('enlaces_moleculares',render = False)
     C = []
@@ -93,7 +93,7 @@ def DibujaEnlaces(event):
     
 def ActualizaPAS():
     global Atomos
-    DibujaEnlaces(None)
+    DrawBonds(None)
 
 def Repetidos():
     k1 = [set((h.split(' - ')[0]).split(',')) for h in ui.En.GetStrings()]
@@ -213,7 +213,7 @@ def Actualiza(SD, Dis, rad_en):
         CM = CM / len(Atomos)
         plotter.clear()
         RenderVista()
-        DibujaEnlaces(None)
+        DrawBonds(None)
     
 def setorigen(event):
     global CM
@@ -316,13 +316,13 @@ def STL(nam):
     if malla_atomos and malla_enlaces:
         malla_final = malla_atomos.merge(malla_enlaces).extract_surface(algorithm='dataset_surface')
     else:
-        dlg = wx.MessageDialog(ui.panel, 'No es posible exportar', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(ui.panel, 'Exporting is not possible', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
         return
     malla_final.save(nam)
 
-    dlg = wx.MessageDialog(ui.panel, f'Archivo {nam} listo!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+    dlg = wx.MessageDialog(ui.panel, f'{nam} file ready!!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
 
@@ -356,7 +356,7 @@ def ActTodosEn(event):
     ui.Ne.SetItems(K1)
     ui.Ne.SetCheckedItems(seK)
     
-    DibujaEnlaces(None)
+    DrawBonds(None)
 
 def CambiarRadio(event):
     try:
@@ -367,7 +367,7 @@ def CambiarRadio(event):
             if a.simbolo == k[0]: a.radio = float(ui.Ar.Value)
         RenuevaAtomos()
     except:
-        dlg = wx.MessageDialog(ui.panel, 'Debes resaltar una entrada de la lista\ny dar un radio válido', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(ui.panel, 'You must highlight an entry in the list\nand provide a valid radius.', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -381,10 +381,10 @@ def CambiarRadioE(event):
         ui.DicFun1[B_id].SetString(ui.DicFun1[B_id].GetSelection(), k[0] + ' - ' + str(float(ui.DicTxt1[B_id].Value)) + ' ' + dt) 
         muestra = False
         if B_id == 'CR1': seccion(None)
-        DibujaEnlaces(None)
+        DrawBonds(None)
         muestra = True
     except:
-        dlg = wx.MessageDialog(ui.panel, 'Debes resaltar una entrada de la lista!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(ui.panel, 'You must highlight one entry from the list!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -401,54 +401,54 @@ def DSE(event):
             ui.DicFun1[B_id].SetString(ui.DicFun1[B_id].GetSelection(), k + ' D')
         muestra = False
         if B_id == 'CR1': seccion(None)
-        DibujaEnlaces(None)
+        DrawBonds(None)
         muestra = True
     except:
-        dlg = wx.MessageDialog(ui.panel, 'Debes resaltar una entrada de la lista!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(ui.panel, 'You must highlight one entry from the list!', 'PyAtomSTL', wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
 
 def STLG(event):
-    global ruta
-    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
-    nam = os.path.splitext(os.path.basename(ruta))[0]
-    fileDialog = wx.FileDialog(ui.panel, "Exportar archivo STL", wildcard="Archivo STL (*.stl)|*.stl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    global path
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', path).group(3)
+    nam = os.path.splitext(os.path.basename(path))[0]
+    fileDialog = wx.FileDialog(ui.panel, "Save STL file", wildcard="STL file (*.stl)|*.stl", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
     fileDialog.SetFilename(nam)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ruta = fileDialog.GetPath()
-    STL(ruta)
+    path = fileDialog.GetPath()
+    STL(path)
 
 def XYZR(event):
-    global DisStr, ruta
-    fileDialog = wx.FileDialog(ui.panel, "Leer archivo XYZ", wildcard="Archivo XYZ (*.xyz)|*.xyz", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+    global DisStr, path
+    fileDialog = wx.FileDialog(ui.panel, "Load XYZ file", wildcard="XYZ file (*.xyz)|*.xyz", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
     ui.RE.Value = '0.10'
-    ruta = fileDialog.GetPath()
-    Inicia(ruta)
+    path = fileDialog.GetPath()
+    Inicia(path)
     ui.K.SetItems(DisStr)
     ui.En.SetItems([])
     ui.Ne.SetItems([])
     Depura()
     ui.K.SetCheckedItems([0])
-    ListaRadios()
+    RadiiList()
     seccion(None)
     
 def MOLR(event):
-    global DisStr, ruta
-    fileDialog = wx.FileDialog(ui.panel, "Leer archivo MOL", wildcard="Archivo MOL (*.mol)|*.mol", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+    global DisStr, path
+    fileDialog = wx.FileDialog(ui.panel, "Load MOL file", wildcard="MOL file (*.mol)|*.mol", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
     ui.RE.Value = '0.10'
-    ruta = fileDialog.GetPath()
-    Emol = IniciaMOL(ruta)
+    path = fileDialog.GetPath()
+    Emol = IniciaMOL(path)
     ui.K.SetItems(DisStr)
     ui.En.SetItems([])
     Depura()
     ui.Ne.SetItems(Emol)
     ui.Ne.SetCheckedItems(range(len(ui.Ne.GetStrings())))
-    ListaRadios()
+    RadiiList()
     seccion(None)
 
-def ListaRadios():
+def RadiiList():
     AtS = []; ui.At.SetItems([])
     for a in Atomos:
         if a.simbolo not in AtS:
@@ -457,17 +457,17 @@ def ListaRadios():
 
 def Originales(event):
     for a in Atomos: a.radio = GetRadius(a.simbolo) / 2.0
-    ListaRadios()
+    RadiiList()
     RenuevaAtomos()
 
 def LeerPAS(event):
-    global ruta, muestra, Atomos
-    fileDialog = wx.FileDialog(ui.panel, "Leer archivo PAS", wildcard='Archivo PAS (*.pas)|*.pas', style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+    global path, muestra, Atomos
+    fileDialog = wx.FileDialog(ui.panel, "Load PAS file", wildcard='PAS file (*.pas)|*.pas', style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ruta = fileDialog.GetPath()
+    path = fileDialog.GetPath()
     ui.K.Clear(); ui.En.Clear(); ui.Ne.Clear(); ui.At.Clear()
     Atomos = []
-    archivo = list(open(ruta, 'r'))
+    archivo = list(open(path, 'r'))
     for a in archivo:
         k = a.split(',')
         if k[0] == '@1':
@@ -497,14 +497,14 @@ def LeerPAS(event):
     ui.K.Enabled = True
 
 def SalvarPAS(event):
-    global ruta
-    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
-    nam = os.path.splitext(os.path.basename(ruta))[0]
-    fileDialog = wx.FileDialog(ui.panel, "Salvar archivo PAS", wildcard="Archivo PAS (*.pas)|*.pas", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    global path
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', path).group(3)
+    nam = os.path.splitext(os.path.basename(path))[0]
+    fileDialog = wx.FileDialog(ui.panel, "Save PAS file", wildcard="PAS file (*.pas)|*.pas", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
     fileDialog.SetFilename(nam)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ruta = fileDialog.GetPath()
-    salva = open(ruta, 'w')
+    path = fileDialog.GetPath()
+    salva = open(path, 'w')
     for a in Atomos:
         pos_str = f"<{a.posicionVis[0]},{a.posicionVis[1]},{a.posicionVis[2]}>"
         salva.write('@1,' + a.indice + ',' + a.simbolo + ',' + pos_str + '\n')
@@ -534,13 +534,13 @@ def SelTodos(event):
     if B_id == 'CR1':
         seccion(None)
     else:
-        DibujaEnlaces(None)
+        DrawBonds(None)
 
-def Fondo(event):
+def Back(event):
     global rgb
     data = wx.ColourData()
     data.SetChooseFull(True)      
-    data.SetColour(wx.Colour(0, 0, 0)) 
+    data.SetColour(wx.Colour(0, 0, 0))
     dialog = wx.ColourDialog(ui.panel, data)
     if dialog.ShowModal() == wx.ID_OK:
         color = dialog.GetColourData().GetColour()
@@ -554,31 +554,32 @@ def Anaglyph(event):
     if plotter.render_window.GetStereoRender():
         plotter.set_background(rgb)
         plotter.disable_stereo_render()
-        plotter.render()
-        ui.boton5.SetLabel('Visualizar\n3D Rojo/Cyan')
     else:
-        ui.boton5.SetLabel('Visualización\nnormal')
         rgb = plotter.renderer.background_color
         plotter.set_background((1.0, 1.0, 1.0))
         plotter.enable_stereo_render()
-        plotter.render()
+
+    plotter.render()
 
 def SPNG(event):
-    global ruta
-    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', ruta).group(3)
-    nam = os.path.splitext(os.path.basename(ruta))[0]
-    fileDialog = wx.FileDialog(ui.panel, "Salvar archivo png", wildcard="Archivo png (*.png)|*.png", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    global path
+    #nam = re.search(r'(^[A-Z]:)*(\\.+)*\\(.+)\..+', path).group(3)
+    nam = os.path.splitext(os.path.basename(path))[0]
+    fileDialog = wx.FileDialog(ui.panel, "Export PNG Image", wildcard="png file (*.png)|*.png", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
     fileDialog.SetFilename(nam)
     if fileDialog.ShowModal() == wx.ID_CANCEL: return
-    ruta = fileDialog.GetPath()
-    plotter.screenshot(ruta)
+    path = fileDialog.GetPath()
+    original_size = plotter.window_size
+    plotter.window_size = (1920, 1080); plotter.render()
+    plotter.screenshot(path)
+    plotter.window_size = original_size;plotter.render()
 
 app = wx.App()
 
-ruta = r'\CuCl.xyz'
+path = r'\CuCl.xyz'
 
 try:
-    Inicia(ruta[1:])
+    Inicia(path[1:])
 except FileNotFoundError:
     DisStr = []
     Atomos = []
@@ -586,7 +587,7 @@ except FileNotFoundError:
 ui = PyAtomSTLFrame(main_app=sys.modules[__name__])
 ui.crear_diccionarios()
 
-ListaRadios()
+RadiiList()
 Depura()
 ui.K.SetCheckedItems([0])
 seccion(None)
