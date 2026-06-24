@@ -13,3 +13,4 @@ jobs:
         uses: openjournals/openjournals-compiler-action@master
         with:
           journal: joss
+          paper: paper.md
