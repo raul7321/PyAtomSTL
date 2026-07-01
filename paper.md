@@ -7,10 +7,10 @@ tags:
   - Additive Manufacturing 
   - Computational Chemistry
 authors:
-  - name: Raúl Arturo Espejel Morales 
+  - name: Raúl Arturo Espejel-Morales 
     orcid: 0000-0003-2156-5396 
     affiliation: 1
-  - name: Sebastián Pérez Patricio
+  - name: Sebastián Pérez-Patricio
     affiliation: 1
 affiliations:
   - name: Facultad de Ciencias, Universidad Nacional Autónoma de México
