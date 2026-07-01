@@ -1,6 +1,5 @@
 ---
-title: 'PyAtomSTL: An Interactive Python Tool for Generating
-Watertight (Manifold) Molecular Meshes Optimized for 3D Printing'
+title: 'PyAtomSTL: An Interactive Python Tool for Generating Watertight (Manifold) Molecular Meshes Optimized for 3D Printing'
 tags: 
   - Python 
   - Molecular Visualization 
@@ -8,11 +7,14 @@ tags:
   - Additive Manufacturing 
   - Computational Chemistry
 authors:
- - name: Raúl Arturo Espejel Morales 
-   orcid: 0000-0003-2156-5396 
-   affiliation: Facultad de Ciencias, Universidad Nacional Autónoma de México 
- - name: Sebastián Pérez Patricio
-   affiliation: Facultad de Ciencias, Universidad Nacional Autónoma de México 
+  - name: Raúl Arturo Espejel Morales 
+    orcid: 0000-0003-2156-5396 
+    affiliation: 1
+  - name: Sebastián Pérez Patricio
+    affiliation: 1
+affiliations:
+  - name: Facultad de Ciencias, Universidad Nacional Autónoma de México
+    index: 1
 date: 22 June 2026
 version: 1.0.0 
 bibliography: paper.bib 
