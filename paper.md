@@ -50,6 +50,7 @@ Generating 3D-printable physical models from molecular and crystalline data typi
 3. Command-Line Tools and Web Converters: There are script-based converters (e.g., vmd2stl) and lightweight web tools that perform direct file translations. While useful, they operate as black boxes without real-time visual feedback, depriving the user of the ability to interactively preview adjustments to bond multiplicity, custom element colors, or local radii scaling before generating the final mesh.
 
 PyAtomSTL bridges this gap by combining the interactive manipulation of atomic properties found in dedicated visualizers with a direct, hardware-accelerated rendering engine that outputs closed, high-fidelity manifold meshes optimized for additive manufacturing, all within a single desktop application.
+![3D printed model of a copper chloride crystal.](3DModel.png)
 
 # Software design
 
