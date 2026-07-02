@@ -39,6 +39,7 @@ to handle GUI events smoothly.
 
 Furthermore, 'PyAtomSTL' allows users to dynamically filter which specific element groups or individual bonds are included in the final export, making it highly adaptable for creating custom teaching models of complex crystal lattices or macro-molecular fragments.
 
+![Interactive GUI of PyAtomSTL showing a CuCl rendering.](PyAtomSTL.jpg)
 
 # State of the field
 
