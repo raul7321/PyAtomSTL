@@ -11,55 +11,55 @@ class PyAtomSTLFrame(wx.Frame):
     def init_ui(self):
         y1 = 5; y2 = 20; y3 = 20
 
-        self.Vista = wx.CheckBox(self.panel, pos=(5, 15+y1), label='Perspective')
-        self.Vista.SetValue(True)
-        self.Vista.Bind(wx.EVT_CHECKBOX, self.main.vista)
+        self.View = wx.CheckBox(self.panel, pos=(5, 15+y1), label='Perspective')
+        self.View.SetValue(True)
+        self.View.Bind(wx.EVT_CHECKBOX, self.main.ChangeView)
 
         self.M1 = wx.CheckBox(self.panel, pos=(320, 5+y1), label='Symbol')
         self.M1.SetValue(True)
-        self.M1.Bind(wx.EVT_CHECKBOX, self.main.act_etiquetas)
+        self.M1.Bind(wx.EVT_CHECKBOX, self.main.ActLabels)
 
         self.M2 = wx.CheckBox(self.panel, pos=(320, 25+y1), label='Indices')
         self.M2.SetValue(True)
-        self.M2.Bind(wx.EVT_CHECKBOX, self.main.act_etiquetas)
+        self.M2.Bind(wx.EVT_CHECKBOX, self.main.ActLabels)
 
         self.Ej = wx.CheckBox(self.panel, pos=(410, 15+y1), label='Axes')
         self.Ej.SetValue(True)
-        self.Ej.Bind(wx.EVT_CHECKBOX, self.main.act_ejes)
+        self.Ej.Bind(wx.EVT_CHECKBOX, self.main.ActAxis)
 
         self.K1 = wx.StaticBox(self.panel, pos=(90, 0+y1), label='Rotate Around:', size=(190, 36))
         self.R1 = wx.RadioButton(self.panel, pos=(100, 15+y1), label='<0,0,0>')
         self.R2 = wx.RadioButton(self.panel, pos=(180, 15+y1), label='Geom Center')
-        self.R1.Bind(wx.EVT_RADIOBUTTON, self.main.setorigen)
-        self.R2.Bind(wx.EVT_RADIOBUTTON, self.main.setorigen)
+        self.R1.Bind(wx.EVT_RADIOBUTTON, self.main.setorigin)
+        self.R2.Bind(wx.EVT_RADIOBUTTON, self.main.setorigin)
         self.R2.SetValue(True)
 
         self.St1 = wx.CheckBox(self.panel, pos=(5, 70+y1), label='', name='CR1')
         self.St2 = wx.CheckBox(self.panel, pos=(150, 70+y1), label='', name='CR2')
         self.St3 = wx.CheckBox(self.panel, pos=(295, 70+y1), label='', name='CR3')
         for cb in [self.St1, self.St2, self.St3]:
-            cb.Bind(wx.EVT_CHECKBOX, self.main.SelTodos) # Seleccionar todos los enlaces de cada lista
+            cb.Bind(wx.EVT_CHECKBOX, self.main.SelAll) # Seleccionar todos los enlaces de cada lista
 
         self.K = wx.CheckListBox(self.panel, pos=(5, 70+y2), size=(123, 120), choices=self.main.DisStr, name='CR1')
-        self.K.Bind(wx.EVT_CHECKLISTBOX, self.main.seccion)
-        self.K.Bind(wx.EVT_LISTBOX, self.main.CRadioE)
+        self.K.Bind(wx.EVT_CHECKLISTBOX, self.main.UpdateSelection)
+        self.K.Bind(wx.EVT_LISTBOX, self.main.CRadiusB)
 
         self.En = wx.CheckListBox(self.panel, pos=(150, 70+y2), size=(130, 120), choices=[], name='CR2')
         self.En.Bind(wx.EVT_CHECKLISTBOX, self.main.DrawBonds)
-        self.En.Bind(wx.EVT_LISTBOX, self.main.CRadioE)
+        self.En.Bind(wx.EVT_LISTBOX, self.main.CRadiusB)
 
         self.Ne = wx.CheckListBox(self.panel, pos=(295, 70+y2), size=(130, 120), choices=[], name='CR3')
         self.Ne.Bind(wx.EVT_CHECKLISTBOX, self.main.DrawBonds)
-        self.Ne.Bind(wx.EVT_LISTBOX, self.main.CRadioE)
+        self.Ne.Bind(wx.EVT_LISTBOX, self.main.CRadiusB)
 
         self.boton = wx.Button(self.panel, label='Add bond\nbetween atoms:', pos=(430, 70+y2), size=(95, 35))
-        self.boton.Bind(wx.EVT_BUTTON, self.main.NuevoEnlace)
+        self.boton.Bind(wx.EVT_BUTTON, self.main.NewBond)
 
         self.T1 = wx.TextCtrl(self.panel, pos=(430, 110+y2), size=(44, 18))
         self.T2 = wx.TextCtrl(self.panel, pos=(480, 110+y2), size=(44, 18))
 
         self.boton1 = wx.Button(self.panel, label='Clear List', pos=(430, 166+y2), size=(87, 24))
-        self.boton1.Bind(wx.EVT_BUTTON, self.main.Borrar)
+        self.boton1.Bind(wx.EVT_BUTTON, self.main.ClearPlot)
 
         self.RadEnT1 = wx.TextCtrl(self.panel, pos=(5, 192+y2), size=(40, 22), value='0.10', style=wx.TE_PROCESS_ENTER)
         self.RadEnB1 = wx.Button(self.panel, pos=(45, 190+y2), size=(85, 25), label='Change radius', name='CR1')
@@ -71,7 +71,7 @@ class PyAtomSTLFrame(wx.Frame):
         self.RadEnB3 = wx.Button(self.panel, pos=(335, 190+y2), size=(92, 25), label='Change radius', name='CR3')
 
         for btn in [self.RadEnB1, self.RadEnB2, self.RadEnB3]:
-            btn.Bind(wx.EVT_BUTTON, self.main.CambiarRadioE)
+            btn.Bind(wx.EVT_BUTTON, self.main.ChangeRadiusE)
         
         self.RadEnB1.SetToolTip('Changes the radius of all bonds with the selected length')
         self.RadEnB2.SetToolTip('Changes the radius of the selected bond')
@@ -93,24 +93,24 @@ class PyAtomSTLFrame(wx.Frame):
         self.L1 = wx.StaticText(self.panel, pos=(5, 270+y3), label='Atom - Radius')
 
         self.At = wx.ListBox(self.panel, pos=(5, 290+y3), size=(80, 120), choices=[])
-        self.At.Bind(wx.EVT_LISTBOX, self.main.CRadio)
+        self.At.Bind(wx.EVT_LISTBOX, self.main.CRadius)
 
         self.Ar = wx.TextCtrl(self.panel, pos=(90, 290+y3), size=(40, 20), value='', style=wx.TE_PROCESS_ENTER)
-        self.Ar.Bind(wx.EVT_TEXT_ENTER, self.main.CambiarRadio)
+        self.Ar.Bind(wx.EVT_TEXT_ENTER, self.main.ChangeRadius)
 
         self.boton2 = wx.Button(self.panel, label='Change atom\nradius', pos=(135, 290+y3), size=(100, 35))
-        self.boton2.Bind(wx.EVT_BUTTON, self.main.CambiarRadio)
+        self.boton2.Bind(wx.EVT_BUTTON, self.main.ChangeRadius)
         self.boton2.SetToolTip('Changes the radius of all atoms of the selected element')
 
         self.RE = wx.TextCtrl(self.panel, pos=(265, 290+y3), size=(40, 20), value='0.10', style=wx.TE_PROCESS_ENTER)
-        self.RE.Bind(wx.EVT_TEXT_ENTER, self.main.ActTodosEn)
+        self.RE.Bind(wx.EVT_TEXT_ENTER, self.main.ActAllBonds)
 
         self.boton4 = wx.Button(self.panel, label='Change radius of\nall bonds', pos=(310, 290+y3), size=(125, 35))
-        self.boton4.Bind(wx.EVT_BUTTON, self.main.ActTodosEn)
+        self.boton4.Bind(wx.EVT_BUTTON, self.main.ActAllBonds)
         self.boton4.SetToolTip('Changes the radius of all bonds')
 
         self.boton6 = wx.Button(self.panel, label='Reset to\ndefault radii', pos=(135, 325+y3), size=(100, 35))
-        self.boton6.Bind(wx.EVT_BUTTON, self.main.Originales)
+        self.boton6.Bind(wx.EVT_BUTTON, self.main.Originals)
 
         filemenu = wx.Menu()
         viewmenu = wx.Menu()
@@ -132,8 +132,8 @@ class PyAtomSTLFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.main.MOLR,      id=102)
         self.Bind(wx.EVT_MENU, self.main.STLG,      id=103)
         self.Bind(wx.EVT_MENU, self.main.SPNG,      id=104)
-        self.Bind(wx.EVT_MENU, self.main.LeerPAS,   id=105)
-        self.Bind(wx.EVT_MENU, self.main.SalvarPAS, id=106)
+        self.Bind(wx.EVT_MENU, self.main.LoadPAS,   id=105)
+        self.Bind(wx.EVT_MENU, self.main.SavePAS,   id=106)
         self.Bind(wx.EVT_MENU, self.main.Anaglyph,  id=201)
         self.Bind(wx.EVT_MENU, self.main.Back,      id=202)
 
